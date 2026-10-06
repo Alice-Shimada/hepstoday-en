@@ -65,6 +65,31 @@ class DataManifestTests(unittest.TestCase):
                     (root / "assets/file-list.txt").read_text().splitlines(), expected
                 )
 
+    def test_chinese_english_and_mixed_language_manifests(self):
+        for languages in (("Chinese",), ("English",), ("Chinese", "English")):
+            for workflow in WORKFLOWS:
+                with self.subTest(languages=languages, workflow=workflow.name), tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    (root / "data").mkdir()
+                    (root / "assets").mkdir()
+                    expected = sorted(
+                        (
+                            f"{date}_AI_enhanced_{language}.jsonl"
+                            for date in ("2026-10-02", "2026-10-05")
+                            for language in languages
+                        ),
+                        reverse=True,
+                    )
+                    for name in expected:
+                        (root / "data" / name).write_text("{}\n", encoding="utf-8")
+                    (root / "data/2026-10-05.jsonl").write_text("{}\n", encoding="utf-8")
+                    (root / "assets/file-list.txt").write_text("2026-10-05.jsonl\n")
+                    result = self.run_manifest(workflow, root)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(
+                        (root / "assets/file-list.txt").read_text().splitlines(), expected
+                    )
+
     def test_partial_daily_manifest_is_replaced_by_complete_history(self):
         for workflow in WORKFLOWS:
             with self.subTest(workflow=workflow.name), tempfile.TemporaryDirectory() as tmp:
