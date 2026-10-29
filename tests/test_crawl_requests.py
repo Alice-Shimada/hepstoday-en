@@ -37,6 +37,8 @@ class CrawlRequestTests(unittest.TestCase):
                 result = self.retry.process_response(request, response, self.spider)
                 if isinstance(result, Request):
                     request = result
+                else:
+                    break
         formatter = logging.Formatter(
             "%(asctime)s [%(name)s] %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S"
         )
